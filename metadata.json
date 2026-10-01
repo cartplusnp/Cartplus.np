@@ -1,0 +1,6 @@
+{
+  "name": "CARTPLUS - More Choices. More Value.",
+  "description": "Discover quality products, great deals, and more choices at great value. CARTPLUS is Nepal's modern online marketplace for electronics, fashion, home, gadgets and more with Cash on Delivery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
