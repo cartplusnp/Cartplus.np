@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Heart, User, Sparkles, ChevronDown, Package, ShieldCheck, Headphones, LogOut, ExternalLink, Store, Bell, Tag, RefreshCw, Check } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Logo } from './Logo';
 import { SearchBar } from './SearchBar';
 import { Link, useRouter } from '../../context/RouterContext';
@@ -104,9 +105,15 @@ export const Header: React.FC = () => {
             <div className="relative">
               <Heart className="w-5 h-5 text-slate-700" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-slate-950 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center tabular-nums">
+                <motion.span
+                  key={wishlistCount}
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: [1.25, 1] }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                  className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center tabular-nums shadow-xs"
+                >
                   {wishlistCount}
-                </span>
+                </motion.span>
               )}
             </div>
             <span className="hidden lg:inline text-xs font-semibold text-slate-700">Wishlist</span>
@@ -236,9 +243,15 @@ export const Header: React.FC = () => {
             <div className="relative">
               <ShoppingCart className="w-5 h-5 text-slate-700 group-hover:text-amber-600 transition-colors" />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-slate-950 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center tabular-nums shadow-xs">
+                <motion.span
+                  key={cartCount}
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: [1.3, 1] }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                  className="absolute -top-1.5 -right-1.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center tabular-nums shadow-xs"
+                >
                   {cartCount}
-                </span>
+                </motion.span>
               )}
             </div>
             <div className="hidden lg:flex flex-col text-left leading-none">
@@ -383,15 +396,22 @@ export const Header: React.FC = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`px-3 py-1.5 rounded-md whitespace-nowrap transition-colors ${
+                  className={`relative px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors z-10 ${
                     isActive
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
+                      ? 'text-white font-bold'
                       : link.isSpecial
-                      ? 'text-amber-600 hover:bg-amber-100/60 font-semibold'
-                      : 'hover:text-slate-950 hover:bg-white/80'
+                      ? 'text-amber-600 hover:text-amber-700 font-bold'
+                      : 'hover:text-slate-950'
                   }`}
                 >
-                  {link.name}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeHeaderNav"
+                      transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                      className="absolute inset-0 bg-slate-900 rounded-lg -z-10 shadow-2xs"
+                    />
+                  )}
+                  <span>{link.name}</span>
                 </Link>
               );
             })}

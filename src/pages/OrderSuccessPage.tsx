@@ -20,6 +20,7 @@ import {
   Scan,
 } from 'lucide-react';
 import { generateOrderQrDataUrl } from '../utils/orderQr';
+import { SuccessAnimation } from '../components/motion/SuccessAnimation';
 
 export const OrderSuccessPage: React.FC = () => {
   const { queryParams } = useRouter();
@@ -324,9 +325,7 @@ Customer Support: cartplus.np@gmail.com
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-8">
         {/* Success Banner */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
-            <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
-          </div>
+          <SuccessAnimation size="md" className="mx-auto" />
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-brand">
             Order Confirmed!
           </h1>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useOrders } from '../context/OrderContext';
 import { useSupport } from '../context/SupportContext';
 import { useRouter, Link } from '../context/RouterContext';
 import { EmptyState } from '../components/common/EmptyState';
 import { OrderTrackerModal } from '../components/account/OrderTrackerModal';
+import { AnimatedNumber } from '../components/motion/AnimatedNumber';
 import { NEPAL_PROVINCES } from '../data/nepalLocations';
 import { Address, SupportRequest, SupportMessage, Order } from '../types';
 import {
@@ -118,6 +120,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'overview
             {user?.name.charAt(0)}
           </div>
           <div>
+            <div className="text-xs font-bold text-amber-600 mb-0.5">Welcome back 👋</div>
             <h1 className="text-2xl font-black text-slate-900 font-brand">
               {user?.name}
             </h1>
@@ -152,50 +155,78 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'overview
       <div className="mt-6 flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar pb-1">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'overview'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <User className="w-4 h-4" />
           <span>Overview</span>
+          {activeTab === 'overview' && (
+            <motion.div
+              layoutId="accountTabUnderline"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('orders')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'orders'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Package className="w-4 h-4" />
           <span>Orders ({orders.length})</span>
+          {activeTab === 'orders' && (
+            <motion.div
+              layoutId="accountTabUnderline"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('addresses')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'addresses'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <MapPin className="w-4 h-4" />
           <span>Addresses ({addresses.length})</span>
+          {activeTab === 'addresses' && (
+            <motion.div
+              layoutId="accountTabUnderline"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('support')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'support'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Headphones className="w-4 h-4" />
           <span>Support Tickets ({userTickets.length})</span>
+          {activeTab === 'support' && (
+            <motion.div
+              layoutId="accountTabUnderline"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
       </div>
 
@@ -205,32 +236,32 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'overview
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+              <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   Total Orders
                 </span>
                 <div className="text-3xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                  {orders.length}
+                  <AnimatedNumber value={orders.length} />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Cash on delivery orders placed</p>
               </div>
 
-              <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+              <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   Saved Addresses
                 </span>
                 <div className="text-3xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                  {addresses.length}
+                  <AnimatedNumber value={addresses.length} />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Ready for 1-click checkout</p>
               </div>
 
-              <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+              <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   Support Inquiries
                 </span>
                 <div className="text-3xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                  {userTickets.length}
+                  <AnimatedNumber value={userTickets.length} />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Help desk requests logged</p>
               </div>

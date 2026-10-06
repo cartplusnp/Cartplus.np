@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useSeller } from '../context/SellerContext';
 import { useProducts } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
@@ -7,6 +8,7 @@ import { CATEGORIES } from '../data/categories';
 import { Product, SellerOrder, SellerDocument } from '../types';
 import { SellerAnalyticsDashboard } from '../components/seller/SellerAnalyticsDashboard';
 import { SellerDispatchSlipModal } from '../components/seller/SellerDispatchSlipModal';
+import { AnimatedNumber } from '../components/motion/AnimatedNumber';
 import {
   Store,
   Plus,
@@ -347,8 +349,9 @@ export const SellerDashboardPage: React.FC = () => {
               Analytics <ArrowUpRight className="w-3 h-3" />
             </span>
           </div>
-          <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-            Rs. {totalSalesEstimate.toLocaleString('en-NP')}
+          <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums flex items-baseline">
+            <span>Rs.&nbsp;</span>
+            <AnimatedNumber value={totalSalesEstimate} />
           </div>
           <p className="text-[11px] text-emerald-600 font-semibold mt-1">Cash on Delivery settled</p>
         </button>
@@ -357,8 +360,9 @@ export const SellerDashboardPage: React.FC = () => {
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Catalog Inventory
           </span>
-          <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-            {sellerProducts.length} Products
+          <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums flex items-baseline gap-1">
+            <AnimatedNumber value={sellerProducts.length} />
+            <span className="text-base font-semibold text-slate-600">Products</span>
           </div>
           <p className="text-[11px] text-slate-500 mt-1">{activeCount} listed & active</p>
         </div>
@@ -388,86 +392,135 @@ export const SellerDashboardPage: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar pb-1 mb-8">
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'analytics'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
           <span>Analytics Dashboard</span>
+          {activeTab === 'analytics' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('products')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'products'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <ShoppingBag className="w-4 h-4" />
           <span>My Products & Upload ({sellerProducts.length})</span>
+          {activeTab === 'products' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('orders')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'orders'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Package className="w-4 h-4" />
           <span>Customer Orders & Pickups ({sellerOrders.length})</span>
+          {activeTab === 'orders' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('ledger')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'ledger'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <DollarSign className="w-4 h-4" />
           <span>Financial Ledger</span>
+          {activeTab === 'ledger' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('payouts')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'payouts'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <CreditCard className="w-4 h-4" />
           <span>Nepal Bank Payouts</span>
+          {activeTab === 'payouts' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('documents')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'documents'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <FileText className="w-4 h-4" />
           <span>Verification Documents</span>
+          {activeTab === 'documents' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('profile')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'profile'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Building2 className="w-4 h-4" />
           <span>Store & Pickup Location</span>
+          {activeTab === 'profile' && (
+            <motion.div
+              layoutId="sellerTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
       </div>
 

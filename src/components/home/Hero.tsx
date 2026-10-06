@@ -1,97 +1,162 @@
 import React from 'react';
 import { ArrowRight, Sparkles, Shield, Truck, Zap } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Link } from '../../context/RouterContext';
 import heroImg from '../../assets/images/hero_ecommerce_showcase_1790251936625.jpg';
 
 export const Hero: React.FC = () => {
+  const shouldReduceMotion = useReducedMotion();
+
+  // Polished entrance sequence
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = shouldReduceMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 16 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+        },
+      };
+
+  const visualVariants = shouldReduceMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, scale: 0.96, y: 12 },
+        visible: {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          transition: { duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] as const },
+        },
+      };
+
   return (
     <section className="relative bg-slate-900 text-white overflow-hidden">
       {/* Background Subtle Gradient Overlay */}
       <div className="absolute inset-0 bg-radial from-slate-800/60 to-slate-950 pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-16 lg:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 lg:gap-12 items-center">
-          {/* Left Text & Call to Action */}
-          <div className="lg:col-span-7 space-y-3.5 sm:space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[11px] sm:text-xs font-semibold">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>NEPAL&apos;S PREMIER MARKETPLACE</span>
-            </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-16 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center">
+          {/* Left Text & Call to Action (Entrance Sequence) */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left"
+          >
+            {/* Step 1: Brand / Category Kicker */}
+            <motion.div variants={itemVariants} className="inline-flex">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[11px] sm:text-xs font-semibold tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>NEPAL&apos;S PREMIER MARKETPLACE</span>
+              </div>
+            </motion.div>
 
-            <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black tracking-tight font-brand text-white leading-tight sm:leading-none">
+            {/* Step 2: Hero Heading */}
+            <motion.h1
+              variants={itemVariants}
+              className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight font-brand text-white leading-tight"
+            >
               MORE CHOICES. <br />
               <span className="text-amber-400">MORE VALUE.</span>
-            </h1>
+            </motion.h1>
 
-            <p className="text-xs sm:text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed line-clamp-2 sm:line-clamp-none">
-              Discover quality products at prices you&apos;ll love. From premium audio and smart gadgets to home living essentials, delivered straight to your doorstep.
-            </p>
+            {/* Step 3: Supporting Text */}
+            <motion.p
+              variants={itemVariants}
+              className="text-xs sm:text-base lg:text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed"
+            >
+              Discover quality products at prices you&apos;ll love. From premium audio and smart gadgets to home living essentials, delivered straight to your doorstep across all 7 provinces.
+            </motion.p>
 
-            {/* CTAs */}
-            <div className="flex flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-4 pt-1 sm:pt-2">
+            {/* Step 4: CTA Buttons */}
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1 sm:pt-2"
+            >
               <Link
                 to="/products"
-                className="flex-1 sm:flex-initial sm:w-auto px-4 sm:px-8 py-2.5 sm:py-3.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition-colors shadow-md sm:shadow-lg shadow-amber-500/20"
+                className="flex-1 sm:flex-initial sm:w-auto px-5 sm:px-8 py-3 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5 active:translate-y-0"
               >
-                <span>SHOP NOW</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>EXPLORE PRODUCTS</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
 
               <Link
                 to="/products?filter=deals"
-                className="flex-1 sm:flex-initial sm:w-auto px-3.5 sm:px-7 py-2.5 sm:py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl text-xs sm:text-sm border border-slate-700 flex items-center justify-center gap-1.5 sm:gap-2 transition-colors"
+                className="flex-1 sm:flex-initial sm:w-auto px-4 sm:px-7 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl text-xs sm:text-sm border border-slate-700/80 flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
-                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 fill-amber-400" />
-                <span>EXPLORE DEALS</span>
+                <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span>HOT DEALS</span>
               </Link>
-            </div>
+            </motion.div>
 
-            {/* Trust points */}
-            <div className="pt-3 sm:pt-6 border-t border-slate-800/80 grid grid-cols-3 gap-2 sm:gap-4 text-left">
+            {/* Step 5: Trust Indicators */}
+            <motion.div
+              variants={itemVariants}
+              className="pt-4 sm:pt-6 border-t border-slate-800/80 grid grid-cols-3 gap-2 sm:gap-4 text-left"
+            >
               <div>
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold text-white">
-                  <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white">
+                  <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>Cash on Delivery</span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Pay after parcel arrives</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Pay after arrival</p>
               </div>
 
               <div>
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold text-white">
-                  <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white">
+                  <Shield className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>Quality Assured</span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Tested & inspected stock</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Verified products</p>
               </div>
 
               <div>
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold text-white">
-                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-                  <span>Fair Pricing</span>
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>Direct Pricing</span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Realistic Nepalese value</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">No markups</p>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Right Product Showcase Hero Visual */}
-          <div className="lg:col-span-5 relative mt-1 sm:mt-0">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-slate-700/80 shadow-xl sm:shadow-2xl bg-slate-800 aspect-16/9 sm:aspect-4/3 lg:aspect-square">
+          <motion.div
+            variants={visualVariants}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-5 relative mt-2 sm:mt-0"
+          >
+            <div className="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl bg-slate-800 aspect-4/3 sm:aspect-4/3 lg:aspect-square group">
               <img
                 src={heroImg}
                 alt="CARTPLUS Premium Electronics & Gadgets Showcase"
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
               />
 
-              {/* Float Badge */}
-              <div className="absolute bottom-2.5 sm:bottom-4 left-2.5 sm:left-4 right-2.5 sm:right-4 bg-slate-900/90 backdrop-blur-md p-2.5 sm:p-3.5 rounded-lg sm:rounded-xl border border-slate-700/60 flex items-center justify-between">
+              {/* Bottom Glass Overlay */}
+              <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 bg-slate-900/90 backdrop-blur-md p-3 sm:p-4 rounded-xl border border-slate-700/60 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-amber-400 font-bold">
+                  <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-amber-400 font-extrabold">
                     Featured Collection
                   </div>
                   <div className="text-xs sm:text-sm font-bold text-white">
-                    Smart Audio & Wearables
+                    Smart Audio, Wearables & Lifestyle
                   </div>
                 </div>
                 <div className="text-right">
@@ -101,7 +166,7 @@ export const Hero: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

@@ -217,12 +217,37 @@ export const CheckoutPage: React.FC = () => {
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-brand">
           Checkout & Delivery
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Complete your delivery details. Pay in cash when your parcel arrives.
+        <p className="text-xs text-slate-500 mt-0.5">
+          Complete your delivery details. Cash on Delivery supported across all 7 provinces of Nepal.
         </p>
       </div>
 
-      <form onSubmit={handlePlaceOrder} className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Trust & Progress Stepper */}
+      <div className="max-w-2xl mx-auto my-8 px-2">
+        <div className="flex items-center justify-between text-xs font-semibold">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-900">
+            <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</div>
+            <span className="hidden sm:inline">Shopping Bag</span>
+          </div>
+          <div className="flex-1 h-0.5 mx-2 sm:mx-3 bg-emerald-500" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-900 font-bold">
+            <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">2</div>
+            <span>Delivery Address</span>
+          </div>
+          <div className="flex-1 h-0.5 mx-2 sm:mx-3 bg-slate-200" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500">
+            <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[11px] font-bold">3</div>
+            <span>Cash on Delivery</span>
+          </div>
+          <div className="flex-1 h-0.5 mx-2 sm:mx-3 bg-slate-200" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400">
+            <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-[11px] font-bold">4</div>
+            <span className="hidden sm:inline">Confirmation</span>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Columns: Forms */}
         <div className="lg:col-span-8 space-y-6">
           {errors.submit && (

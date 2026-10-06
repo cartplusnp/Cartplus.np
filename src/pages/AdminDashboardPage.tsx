@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useProducts } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
 import { useReviews } from '../context/ReviewContext';
@@ -9,6 +10,7 @@ import { useRouter, Link } from '../context/RouterContext';
 import { CATEGORIES } from '../data/categories';
 import { Product, Order, OrderStatus, SupportRequest, SupportStatus, OrderItem, SellerProfile } from '../types';
 import { useAdminSettings } from '../context/AdminSettingsContext';
+import { AnimatedNumber } from '../components/motion/AnimatedNumber';
 import {
   ShieldCheck,
   Package,
@@ -383,70 +385,105 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar pb-1 mb-8">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'overview'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <TrendingUp className="w-4 h-4" />
           <span>Metrics Overview</span>
+          {activeTab === 'overview' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('products')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'products'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <ShoppingBag className="w-4 h-4" />
           <span>Products ({products.length})</span>
+          {activeTab === 'products' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('sellers')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'sellers'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Store className="w-4 h-4" />
           <span>Marketplace Sellers ({sellers.length})</span>
+          {activeTab === 'sellers' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('users')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'users'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Users className="w-4 h-4" />
           <span>Users & Customers ({users.length})</span>
+          {activeTab === 'users' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('orders')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'orders'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Package className="w-4 h-4" />
           <span>Orders ({orders.length})</span>
+          {activeTab === 'orders' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'reviews'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Star className="w-4 h-4" />
@@ -456,14 +493,21 @@ export const AdminDashboardPage: React.FC = () => {
               {pendingReviews}
             </span>
           )}
+          {activeTab === 'reviews' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('support')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'support'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Headphones className="w-4 h-4" />
@@ -473,18 +517,32 @@ export const AdminDashboardPage: React.FC = () => {
               {openTickets}
             </span>
           )}
+          {activeTab === 'support' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('gateways')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`relative pb-3 px-4 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer z-10 ${
             activeTab === 'gateways'
-              ? 'border-slate-900 text-slate-900 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'text-slate-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Wallet className="w-4 h-4 text-emerald-600" />
           <span>Admin & Payout Gateways</span>
+          {activeTab === 'gateways' && (
+            <motion.div
+              layoutId="adminTabIndicator"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"
+            />
+          )}
         </button>
       </div>
 
@@ -496,8 +554,9 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Total Gross Sales
               </span>
-              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                Rs. {totalRevenue.toLocaleString('en-NP')}
+              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums flex items-baseline">
+                <span>Rs.&nbsp;</span>
+                <AnimatedNumber value={totalRevenue} />
               </div>
               <p className="text-xs text-emerald-600 font-semibold mt-1 flex items-center gap-1">
                 <span>COD + Digital Wallets + Cards</span>
@@ -509,7 +568,7 @@ export const AdminDashboardPage: React.FC = () => {
                 Orders In Queue
               </span>
               <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                {pendingOrders}
+                <AnimatedNumber value={pendingOrders} />
               </div>
               <p className="text-xs text-slate-500 mt-1">
                 {orders.filter((o) => o.order_status === 'delivered').length} Delivered successfully
@@ -520,8 +579,9 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Catalog Inventory
               </span>
-              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                {products.length} Products
+              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums flex items-baseline gap-1">
+                <AnimatedNumber value={products.length} />
+                <span className="text-base font-semibold text-slate-600">Products</span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
                 {products.filter((p) => p.is_active).length} Active on live storefront
@@ -532,8 +592,9 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Platform Customer Accounts
               </span>
-              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                {users.length} Registered
+              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums flex items-baseline gap-1">
+                <AnimatedNumber value={users.length} />
+                <span className="text-base font-semibold text-slate-600">Registered</span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
                 {users.filter((u) => u.role === 'admin').length} Staff Admins · {users.filter((u) => u.status !== 'suspended').length} Active
@@ -544,8 +605,9 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Marketplace Sellers
               </span>
-              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                {sellers.length} Merchants
+              <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums flex items-baseline gap-1">
+                <AnimatedNumber value={sellers.length} />
+                <span className="text-base font-semibold text-slate-600">Merchants</span>
               </div>
               <p className="text-xs text-emerald-600 font-semibold mt-1">
                 {sellers.filter((s) => s.status === 'verified').length} Verified Partners
@@ -557,7 +619,7 @@ export const AdminDashboardPage: React.FC = () => {
                 Open Support Inquiries
               </span>
               <div className="text-2xl font-black text-slate-950 font-brand mt-1 tabular-nums">
-                {openTickets}
+                <AnimatedNumber value={openTickets} />
               </div>
               <p className="text-xs text-amber-600 font-semibold mt-1">Requires customer response</p>
             </div>

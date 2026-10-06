@@ -6,7 +6,9 @@ import { useToast } from './ToastContext';
 interface BrowsingHistoryContextType {
   history: CategoryBrowsingRecord[];
   topCategories: CategoryBrowsingRecord[];
+  recentProductIds: string[];
   recordCategoryVisit: (categorySlug: string, categoryName?: string) => void;
+  recordProductVisit: (productId: string) => void;
   removeCategory: (categorySlug: string) => void;
   clearHistory: () => void;
   addCategoryInterest: (categorySlug: string) => void;
@@ -14,6 +16,7 @@ interface BrowsingHistoryContextType {
 }
 
 const STORAGE_KEY = 'cartplus-category-history';
+const RECENT_PRODUCTS_KEY = 'cartplus-recent-product-ids';
 
 const BrowsingHistoryContext = createContext<BrowsingHistoryContextType | undefined>(undefined);
 
@@ -30,7 +33,19 @@ export const BrowsingHistoryProvider: React.FC<{ children: ReactNode }> = ({ chi
     return [];
   });
 
-  const { success, info } = useToast();
+  const [recentProductIds, setRecentProductIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(RECENT_PRODUCTS_KEY);
+      if (saved !== null) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
+  const { info } = useToast();
 
   useEffect(() => {
     try {
@@ -40,11 +55,18 @@ export const BrowsingHistoryProvider: React.FC<{ children: ReactNode }> = ({ chi
     }
   }, [history]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(RECENT_PRODUCTS_KEY, JSON.stringify(recentProductIds));
+    } catch {
+      // ignore
+    }
+  }, [recentProductIds]);
+
   const recordCategoryVisit = (categorySlug: string, categoryName?: string) => {
     if (!categorySlug) return;
     const normalizedSlug = categorySlug.toLowerCase().trim();
 
-    // Look up proper category name if not provided
     const resolvedName =
       categoryName ||
       CATEGORIES.find((c) => c.slug.toLowerCase() === normalizedSlug)?.name ||
@@ -62,7 +84,6 @@ export const BrowsingHistoryProvider: React.FC<{ children: ReactNode }> = ({ chi
           viewCount: updated[existingIndex].viewCount + 1,
           lastViewedAt: now,
         };
-        // Sort by last viewed
         return updated.sort((a, b) => new Date(b.lastViewedAt).getTime() - new Date(a.lastViewedAt).getTime());
       } else {
         const newRecord: CategoryBrowsingRecord = {
@@ -73,6 +94,14 @@ export const BrowsingHistoryProvider: React.FC<{ children: ReactNode }> = ({ chi
         };
         return [newRecord, ...prev];
       }
+    });
+  };
+
+  const recordProductVisit = (productId: string) => {
+    if (!productId) return;
+    setRecentProductIds((prev) => {
+      const filtered = prev.filter((id) => id !== productId);
+      return [productId, ...filtered].slice(0, 12);
     });
   };
 
@@ -90,19 +119,19 @@ export const BrowsingHistoryProvider: React.FC<{ children: ReactNode }> = ({ chi
 
   const clearHistory = () => {
     setHistory([]);
+    setRecentProductIds([]);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+      localStorage.setItem(RECENT_PRODUCTS_KEY, JSON.stringify([]));
     } catch {
       // ignore
     }
     info('Browsing history cleared. Recommendations reset.');
   };
 
-  // Compute top categories ranked by a combination of viewCount and recency
   const topCategories = [...history].sort((a, b) => {
     const timeA = new Date(a.lastViewedAt).getTime();
     const timeB = new Date(b.lastViewedAt).getTime();
-    // Scoring: 1 view = 100 points, recency decay over 24 hrs
     const scoreA = a.viewCount * 100 + timeA / 1000000;
     const scoreB = b.viewCount * 100 + timeB / 1000000;
     return scoreB - scoreA;
@@ -113,11 +142,13 @@ export const BrowsingHistoryProvider: React.FC<{ children: ReactNode }> = ({ chi
       value={{
         history,
         topCategories,
+        recentProductIds,
         recordCategoryVisit,
+        recordProductVisit,
         removeCategory,
         clearHistory,
         addCategoryInterest,
-        hasHistory: history.length > 0,
+        hasHistory: history.length > 0 || recentProductIds.length > 0,
       }}
     >
       {children}

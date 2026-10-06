@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter, Link } from '../context/RouterContext';
 import { Logo } from '../components/common/Logo';
-import { Lock, Mail, ArrowRight, Shield } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const { navigate } = useRouter();
+  const shouldReduceMotion = useReducedMotion();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +21,7 @@ export const LoginPage: React.FC = () => {
     setError('');
 
     if (!email.trim() || !password) {
-      setError('Please provide your email address and account password.');
+      setError('Please provide your registered email address and account password.');
       return;
     }
 
@@ -34,26 +37,44 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <div className="min-h-[85vh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50">
+      <motion.div
+        initial={shouldReduceMotion ? {} : { opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}
+        className="sm:mx-auto sm:w-full sm:max-w-md text-center"
+      >
         <div className="inline-flex justify-center mb-4">
           <Logo size="lg" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 font-brand">
+        <h1 className="text-2xl font-black text-slate-900 font-brand">
           Customer Sign In
-        </h2>
+        </h1>
         <p className="mt-1 text-xs text-slate-500">
           Sign in to manage your orders, saved addresses, and track shipments across Nepal.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 shadow-md rounded-2xl border border-slate-200/90 sm:px-10 space-y-6">
-          {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 font-medium">
-              {error}
-            </div>
-          )}
+      <motion.div
+        initial={shouldReduceMotion ? {} : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.08, ease: [0.16, 1, 0.3, 1] as const }}
+        className="mt-6 sm:mx-auto sm:w-full sm:max-w-md"
+      >
+        <div className="bg-white py-8 px-6 shadow-md rounded-3xl border border-slate-200/90 sm:px-8 space-y-6">
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                <span>{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -67,7 +88,7 @@ export const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
@@ -82,47 +103,49 @@ export const LoginPage: React.FC = () => {
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-2xs flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+              whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
+              className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-2xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
-              <span>{isLoading ? 'Signing In with Supabase...' : 'Sign In to Account'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              {isLoading ? (
+                <span>Signing In...</span>
+              ) : (
+                <>
+                  <span>SIGN IN TO ACCOUNT</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </motion.button>
           </form>
 
-          <div className="pt-4 border-t border-slate-100 space-y-3 text-center text-xs">
-            <div className="text-slate-600">
-              Don&apos;t have an account yet?{' '}
-              <Link to="/register" className="font-bold text-amber-600 hover:text-amber-700">
-                Register for Free
-              </Link>
-            </div>
-
-            <div className="flex items-center justify-center gap-3 text-[11px] text-slate-400 pt-2 border-t border-slate-100">
-              <Link to="/seller/login" className="hover:text-slate-600">
-                Merchant Sign In
-              </Link>
-              <span>·</span>
-              <Link to="/admin/login" className="hover:text-slate-600 flex items-center gap-1">
-                <Shield className="w-3 h-3 text-slate-400" />
-                <span>Staff Portal</span>
-              </Link>
-            </div>
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+            <span>New customer?</span>
+            <Link to="/register" className="font-bold text-amber-600 hover:underline">
+              Create an Account
+            </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

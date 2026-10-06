@@ -1,27 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useReviews } from '../context/ReviewContext';
 import { useBrowsingHistory } from '../context/BrowsingHistoryContext';
+import { useToast } from '../context/ToastContext';
 import { useRouter, Link } from '../context/RouterContext';
 import { ProductGallery } from '../components/products/ProductGallery';
 import { ReviewSection } from '../components/products/ReviewSection';
 import { ProductCard } from '../components/common/ProductCard';
 import { EmptyState } from '../components/common/EmptyState';
+import { AnimatedHeart } from '../components/motion/AnimatedHeart';
+import { Reveal } from '../components/motion/Reveal';
 import {
   Star,
   ShoppingBag,
   Zap,
-  Heart,
   Truck,
   ShieldCheck,
-  RefreshCw,
-  Clock,
   Check,
   ChevronRight,
   Minus,
   Plus,
+  Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 
 interface ProductDetailPageProps {
@@ -29,20 +31,24 @@ interface ProductDetailPageProps {
 }
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) => {
-  const { getProductBySlug, activeProducts } = useProducts();
+  const { getProductBySlug, getProductById, activeProducts } = useProducts();
   const { addToCart, isInCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
-  const { recordCategoryVisit } = useBrowsingHistory();
+  const { recordCategoryVisit, recordProductVisit, recentProductIds } = useBrowsingHistory();
+  const { cart: toastCart, wishlist: toastWishlist } = useToast();
   const { navigate } = useRouter();
+  const shouldReduceMotion = useReducedMotion();
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'delivery' | 'reviews'>('description');
+  const [justAdded, setJustAdded] = useState(false);
 
   const product = getProductBySlug(slug);
 
   useEffect(() => {
     if (product) {
       recordCategoryVisit(product.categorySlug, product.category);
+      recordProductVisit(product.id);
     }
   }, [product?.id, product?.categorySlug]);
 
@@ -67,8 +73,18 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
     .filter((p) => p.id !== product.id && p.categorySlug === product.categorySlug)
     .slice(0, 4);
 
+  // Other recently viewed products
+  const otherRecentProducts = recentProductIds
+    .filter((id) => id !== product.id)
+    .map((id) => getProductById(id))
+    .filter((p): p is NonNullable<typeof p> => p !== undefined && p.is_active && p.status === 'active')
+    .slice(0, 4);
+
   const handleAddToCart = () => {
     addToCart(product, quantity);
+    setJustAdded(true);
+    toastCart(`Added ${quantity}x "${product.name}" to your bag.`);
+    setTimeout(() => setJustAdded(false), 2200);
   };
 
   const handleBuyNow = () => {
@@ -76,66 +92,81 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
     navigate('/checkout');
   };
 
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleWishlist(product);
+    if (!inWishlist) {
+      toastWishlist(`Saved "${product.name}" to your wishlist.`);
+    }
+  };
+
+  const tabs = [
+    { id: 'description', label: 'Overview' },
+    { id: 'specifications', label: 'Specifications' },
+    { id: 'delivery', label: 'Delivery & COD' },
+    { id: 'reviews', label: `Reviews (${product.review_count})` },
+  ] as const;
+
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 pb-24 lg:pb-12">
       {/* Breadcrumb trail */}
-      <nav className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-6 overflow-x-auto no-scrollbar">
+      <nav className="flex items-center gap-1.5 text-xs text-slate-500 mb-4 sm:mb-6 overflow-x-auto no-scrollbar">
         <Link to="/" className="hover:text-slate-900 transition-colors shrink-0">
           Home
         </Link>
-        <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
         <Link
           to={`/category/${product.categorySlug}`}
           className="hover:text-slate-900 transition-colors shrink-0"
         >
           {product.category}
         </Link>
-        <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
         <span className="text-slate-900 font-medium truncate">{product.name}</span>
       </nav>
 
       {/* Main PDP Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 lg:gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start">
         {/* Left Column: Image Gallery */}
         <div className="lg:col-span-6 sticky top-28">
           <ProductGallery images={product.images} productName={product.name} />
         </div>
 
         {/* Right Column: Contiguous Purchase Module */}
-        <div className="lg:col-span-6 space-y-3.5 sm:space-y-6">
+        <div className="lg:col-span-6 space-y-4 sm:space-y-6">
           <div>
             {/* Category & SKU */}
-            <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 mb-1 sm:mb-2">
-              <span className="font-semibold text-amber-600 uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+              <span className="font-bold text-amber-600 uppercase tracking-wider">
                 {product.category}
               </span>
               <span className="tabular-nums font-mono text-slate-400">SKU: {product.sku}</span>
             </div>
 
             {/* Product Title */}
-            <h1 className="text-xl sm:text-3xl font-black text-slate-900 font-brand leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-brand leading-tight">
               {product.name}
             </h1>
 
             {/* Rating and Reviews header */}
-            <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-3">
+            <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center text-amber-400">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                    className={`w-4 h-4 ${
                       star <= Math.round(product.rating) ? 'fill-current' : 'text-slate-300'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
-                {product.rating.toFixed(1)}
+              <span className="text-sm font-bold text-slate-900 tabular-nums">
+                {product.rating > 0 ? product.rating.toFixed(1) : '5.0'}
               </span>
               <span className="text-slate-300">·</span>
               <button
                 onClick={() => setActiveTab('reviews')}
-                className="text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-amber-600 transition-colors underline"
+                className="text-xs font-semibold text-slate-500 hover:text-amber-600 transition-colors underline cursor-pointer"
               >
                 {product.review_count} Customer Reviews
               </button>
@@ -143,20 +174,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
           </div>
 
           {/* Pricing Box */}
-          <div className="p-3 sm:p-4 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-200/80 flex items-center justify-between">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 flex items-center justify-between shadow-2xs">
             <div>
-              <div className="flex items-baseline gap-2 sm:gap-3">
+              <div className="flex items-baseline gap-2.5 sm:gap-3">
                 <span className="text-2xl sm:text-3xl font-black text-slate-950 font-brand tabular-nums">
                   Rs. {product.price.toLocaleString('en-NP')}
                 </span>
                 {product.original_price > product.price && (
-                  <span className="text-xs sm:text-base text-slate-400 line-through tabular-nums">
+                  <span className="text-sm sm:text-base text-slate-400 line-through tabular-nums">
                     Rs. {product.original_price.toLocaleString('en-NP')}
                   </span>
                 )}
               </div>
               {product.original_price > product.price && (
-                <p className="text-[11px] sm:text-xs font-bold text-emerald-600 mt-0.5 sm:mt-1">
+                <p className="text-xs font-bold text-emerald-600 mt-1">
                   You Save: Rs. {(product.original_price - product.price).toLocaleString('en-NP')} ({product.discount}% OFF)
                 </p>
               )}
@@ -165,12 +196,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
             {/* Stock Status Badge */}
             <div className="text-right">
               {product.stock > 0 ? (
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-emerald-200">
-                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-300/60">
+                  <Check className="w-3.5 h-3.5" />
                   <span>In Stock ({product.stock})</span>
                 </span>
               ) : (
-                <span className="text-[11px] sm:text-xs font-bold text-rose-700 bg-rose-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-rose-200">
+                <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
                   Out of Stock
                 </span>
               )}
@@ -183,178 +214,173 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
           </p>
 
           {/* Quantity Stepper & Actions */}
-          <div className="space-y-2.5 sm:space-y-3 pt-1 sm:pt-2">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">Quantity</span>
-              <div className="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden shadow-2xs">
-                <button
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Quantity</span>
+              <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-2xs">
+                <motion.button
                   type="button"
+                  whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="p-1.5 sm:p-2 text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="p-2 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                   aria-label="Decrease quantity"
                 >
-                  <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </button>
-                <span className="w-10 sm:w-12 text-center text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
+                  <Minus className="w-3.5 h-3.5" />
+                </motion.button>
+                <span className="w-12 text-center text-sm font-bold text-slate-900 tabular-nums">
                   {quantity}
                 </span>
-                <button
+                <motion.button
                   type="button"
+                  whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
                   onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                  className="p-1.5 sm:p-2 text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="p-2 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                   aria-label="Increase quantity"
                 >
-                  <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </button>
+                  <Plus className="w-3.5 h-3.5" />
+                </motion.button>
               </div>
-              <span className="text-[11px] sm:text-xs text-slate-400">Total: Rs. {(product.price * quantity).toLocaleString('en-NP')}</span>
+              <span className="text-xs text-slate-500 tabular-nums font-mono">
+                Total: Rs. {(product.price * quantity).toLocaleString('en-NP')}
+              </span>
             </div>
 
-            {/* Buttons Row */}
-            <div className="grid grid-cols-12 gap-2 sm:gap-3 pt-1 sm:pt-2">
-              <button
+            {/* Desktop Buttons Row */}
+            <div className="grid grid-cols-12 gap-3 pt-2">
+              <motion.button
                 type="button"
                 onClick={handleAddToCart}
-                className={`col-span-5 sm:col-span-5 py-2.5 sm:py-3.5 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-colors shadow-2xs ${
-                  inCart
-                    ? 'bg-slate-200 text-slate-900 hover:bg-slate-300'
+                whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                className={`col-span-5 py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer select-none shadow-2xs ${
+                  justAdded || inCart
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
                     : 'bg-slate-900 hover:bg-slate-800 text-white'
                 }`}
               >
-                <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>{inCart ? 'In Cart' : 'Add to Cart'}</span>
-              </button>
+                {justAdded ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+                    <span>Added to Bag!</span>
+                  </>
+                ) : inCart ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[2]" />
+                    <span>In Shopping Bag</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Add to Bag</span>
+                  </>
+                )}
+              </motion.button>
 
-              <button
+              <motion.button
                 type="button"
                 onClick={handleBuyNow}
-                className="col-span-5 sm:col-span-5 py-2.5 sm:py-3.5 px-2 sm:px-4 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition-colors shadow-md shadow-amber-400/20"
+                whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                className="col-span-5 py-3.5 px-4 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-md shadow-amber-500/20 cursor-pointer select-none"
               >
-                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
+                <Zap className="w-4 h-4 fill-current" />
                 <span>BUY NOW</span>
-              </button>
+              </motion.button>
 
-              <button
-                type="button"
-                onClick={() => toggleWishlist(product)}
-                aria-label={inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
-                className={`col-span-2 sm:col-span-2 py-2.5 sm:py-3.5 px-2 sm:px-3 rounded-xl border flex items-center justify-center transition-colors ${
-                  inWishlist
-                    ? 'bg-rose-50 text-rose-600 border-rose-200'
-                    : 'bg-white text-slate-700 hover:text-rose-600 border-slate-200'
-                }`}
-              >
-                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${inWishlist ? 'fill-current' : ''}`} />
-              </button>
+              <div className="col-span-2 flex items-center justify-center">
+                <AnimatedHeart
+                  isFilled={inWishlist}
+                  onClick={handleWishlistToggle}
+                  size="lg"
+                  ariaLabel={inWishlist ? 'Remove from saved items' : 'Save to wishlist'}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Delivery & Trust Highlights */}
-          <div className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200/80 divide-y divide-slate-200/60 text-[11px] sm:text-xs text-slate-600">
-            <div className="flex items-center gap-2.5 sm:gap-3 pb-2 sm:pb-3">
-              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
-              <div>
-                <span className="font-bold text-slate-900">Cash on Delivery Available</span>
-                <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                  Inspect your parcel on delivery and pay cash across all 7 provinces of Nepal.
-                </p>
-              </div>
+          {/* Trust Guarantees */}
+          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 grid grid-cols-2 gap-3 text-xs">
+            <div className="flex items-center gap-2.5 text-slate-700">
+              <Truck className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Cash on Delivery across Nepal</span>
             </div>
-
-            <div className="flex items-center gap-2.5 sm:gap-3 py-2 sm:py-3">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
-              <div>
-                <span className="font-bold text-slate-900">Delivery in 2 - 4 Business Days</span>
-                <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                  1-2 days within Kathmandu Valley; 2-4 days nationwide.
-                </p>
-              </div>
+            <div className="flex items-center gap-2.5 text-slate-700">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Quality inspected stock</span>
             </div>
-
-            <div className="flex items-center gap-2.5 sm:gap-3 pt-2 sm:pt-3">
-              <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
-              <div>
-                <span className="font-bold text-slate-900">7-Day Return / Replacement Guarantee</span>
-                <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-                  Easy return if defective or not as described.
-                </p>
-              </div>
+            <div className="flex items-center gap-2.5 text-slate-700">
+              <RotateCcw className="w-4 h-4 text-blue-600 shrink-0" />
+              <span>7-Day Return Guarantee</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-slate-700">
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Direct Manufacturer Value</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs Section: Description, Specifications, Delivery, Reviews */}
-      <div className="mt-8 sm:mt-14 pt-4 sm:pt-8 border-t border-slate-200">
-        <div className="flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar pb-1">
-          <button
-            onClick={() => setActiveTab('description')}
-            className={`pb-2 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'description'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Description
-          </button>
-          <button
-            onClick={() => setActiveTab('specifications')}
-            className={`pb-2 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'specifications'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Specifications
-          </button>
-          <button
-            onClick={() => setActiveTab('delivery')}
-            className={`pb-2 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'delivery'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Delivery & COD Terms
-          </button>
-          <button
-            onClick={() => setActiveTab('reviews')}
-            className={`pb-2 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'reviews'
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Reviews ({product.review_count})
-          </button>
+      {/* Tabs Section */}
+      <div className="mt-12 sm:mt-16 bg-white rounded-2xl border border-slate-200 p-4 sm:p-8">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-4 overflow-x-auto no-scrollbar">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-colors whitespace-nowrap cursor-pointer ${
+                  isActive ? 'text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activePdpTab"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 bg-slate-900 rounded-xl -z-10 shadow-xs"
+                  />
+                )}
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="py-6">
+        {/* Tab Content */}
+        <div className="pt-6">
           {activeTab === 'description' && (
-            <div className="prose prose-slate max-w-none text-sm leading-relaxed text-slate-700 space-y-4">
+            <div className="prose prose-slate max-w-none text-xs sm:text-sm text-slate-700 leading-relaxed space-y-3">
               <p>{product.description}</p>
-              <p>
-                All products on CARTPLUS are procured from authorized distributor networks and verified before shipment. We provide authentic items with clear warranties and straightforward after-sales customer service.
-              </p>
+              <h4 className="text-sm font-bold text-slate-900 pt-2">Product Highlights</h4>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Authentic inventory dispatched directly through verified merchant centers.</li>
+                <li>Comprehensive packaging suited for transit across Nepal&apos;s geographical terrain.</li>
+                <li>Pre-inspected before dispatch to ensure zero manufacturing flaws.</li>
+              </ul>
             </div>
           )}
 
           {activeTab === 'specifications' && (
-            <div className="max-w-2xl bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <table className="w-full text-xs text-left">
+            <div className="max-w-2xl">
+              <table className="w-full text-xs text-left border-collapse">
                 <tbody>
+                  <tr className="border-b border-slate-100">
+                    <td className="p-3 font-bold text-slate-700 w-1/3 bg-slate-50">Brand</td>
+                    <td className="p-3 text-slate-600">{product.brand || 'CARTPLUS Certified'}</td>
+                  </tr>
+                  <tr className="border-b border-slate-100">
+                    <td className="p-3 font-bold text-slate-700 w-1/3 bg-slate-50">Category</td>
+                    <td className="p-3 text-slate-600">{product.category}</td>
+                  </tr>
+                  <tr className="border-b border-slate-100">
+                    <td className="p-3 font-bold text-slate-700 w-1/3 bg-slate-50">SKU Reference</td>
+                    <td className="p-3 text-slate-600 font-mono">{product.sku}</td>
+                  </tr>
                   {product.specifications &&
                     Object.entries(product.specifications).map(([key, val], idx) => (
-                      <tr
-                        key={key}
-                        className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}
-                      >
-                        <td className="p-3 font-bold text-slate-700 w-1/3 border-b border-slate-100">
-                          {key}
+                      <tr key={key} className="border-b border-slate-100">
+                        <td className="p-3 font-bold text-slate-700 w-1/3 bg-slate-50 capitalize">
+                          {key.replace(/_/g, ' ')}
                         </td>
-                        <td className="p-3 text-slate-600 border-b border-slate-100">
-                          {val}
-                        </td>
+                        <td className="p-3 text-slate-600">{val}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -369,12 +395,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
                 CARTPLUS partners with leading national courier networks to ensure prompt delivery across all seven provinces of Nepal:
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
-                <li><strong>Kathmandu Valley:</strong> 1 - 2 business days. Express same-day or next-day delivery option.</li>
-                <li><strong>Major Hubs (Pokhara, Biratnagar, Butwal, Birgunj, Dharan, Chitwan):</strong> 2 - 3 business days.</li>
-                <li><strong>Rest of Nepal (Hilly & Terai districts):</strong> 3 - 5 business days.</li>
+                <li><strong>Kathmandu Valley:</strong> 1 - 2 business days. Express next-day delivery.</li>
+                <li><strong>Major Commercial Centers:</strong> (Pokhara, Biratnagar, Butwal, Birgunj, Dharan, Chitwan) 2 - 3 business days.</li>
+                <li><strong>All Other Districts:</strong> 3 - 5 business days.</li>
               </ul>
-              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
-                <strong>Cash on Delivery:</strong> No advance payment required. You will only pay the delivery rider after you verify your sealed package.
+              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-950 font-medium">
+                <strong>Cash on Delivery:</strong> No prepayment necessary. Pay our courier driver after inspecting your parcel tag.
               </div>
             </div>
           )}
@@ -390,19 +416,80 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug }) =>
         </div>
       </div>
 
-      {/* Frequently Bought Together / Related Products */}
+      {/* DISCOVERY LOOP 1: Related Products in this category */}
       {relatedProducts.length > 0 && (
-        <div className="mt-12 pt-8 border-t border-slate-200">
-          <h3 className="text-xl font-black text-slate-900 font-brand mb-6">
-            Related Products You May Like
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <Reveal className="mt-14 pt-10 border-t border-slate-200">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-brand">
+                Similar In {product.category}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">Explore alternate choices with similar features</p>
+            </div>
+            <Link
+              to={`/category/${product.categorySlug}`}
+              className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+            >
+              <span>See All</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {relatedProducts.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
-        </div>
+        </Reveal>
       )}
+
+      {/* DISCOVERY LOOP 2: Recently Viewed Items */}
+      {otherRecentProducts.length > 0 && (
+        <Reveal className="mt-14 pt-10 border-t border-slate-200">
+          <div className="mb-6">
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-brand">
+              Recently Viewed By You
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">Products you checked earlier during this session</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            {otherRecentProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+      {/* Sticky Mobile Purchase Bar (Always within reach on phone) */}
+      <div className="lg:hidden fixed bottom-15 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 p-3 z-30 shadow-xl flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[10px] text-slate-500 uppercase font-semibold">Total Price</div>
+          <div className="text-base font-black text-slate-950 tabular-nums font-brand leading-none">
+            Rs. {(product.price * quantity).toLocaleString('en-NP')}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.95 }}
+            onClick={handleAddToCart}
+            className="px-3.5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>{justAdded ? 'Added!' : inCart ? 'In Bag' : 'Add'}</span>
+          </motion.button>
+
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.95 }}
+            onClick={handleBuyNow}
+            className="px-4 py-2.5 bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1 shadow-md shadow-amber-400/20"
+          >
+            <Zap className="w-3.5 h-3.5 fill-current" />
+            <span>BUY NOW</span>
+          </motion.button>
+        </div>
+      </div>
     </div>
   );
 };
