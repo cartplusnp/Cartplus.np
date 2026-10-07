@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const rawUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  (import.meta.env as unknown as Record<string, string | undefined>).VITE_SUPABASE_ANON_KEY;
+
+const supabaseUrl = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+const supabasePublishableKey = typeof rawKey === 'string' ? rawKey.trim() : '';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
@@ -11,8 +16,8 @@ export const isSupabaseConfigured = Boolean(
 );
 
 // Fallback placeholder URL and key if not yet configured in .env so build/lint succeeds
-const finalUrl = supabaseUrl || 'https://placeholder-project.supabase.co';
-const finalKey = supabasePublishableKey || 'placeholder-anon-key-configure-in-env';
+const finalUrl = isSupabaseConfigured ? supabaseUrl : 'https://placeholder-project.supabase.co';
+const finalKey = isSupabaseConfigured ? supabasePublishableKey : 'placeholder-anon-key-configure-in-env';
 
 export const supabase = createClient(finalUrl, finalKey, {
   auth: {
