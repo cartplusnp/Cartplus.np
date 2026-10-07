@@ -13,6 +13,8 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, phone: string, password?: string) => Promise<{ success: boolean; error?: string }>;
   updateProfile: (data: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
+  updateEmail: (newEmail: string) => Promise<{ success: boolean; error?: string; message?: string }>;
+  changePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   toggleUserRole: (userId: string) => Promise<void>;
   toggleUserStatus: (userId: string) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
@@ -77,6 +79,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Fetch full profile from public.profiles table
   const fetchUserProfile = async (userId: string, fallbackEmail: string) => {
     try {
+      // Check auth user metadata for real full name and phone
+      let metaName = '';
+      let metaPhone = '';
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        metaName = authData?.user?.user_metadata?.full_name || authData?.user?.user_metadata?.name || '';
+        metaPhone = authData?.user?.user_metadata?.phone || '';
+      } catch {
+        // ignore
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -86,11 +99,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (error) {
         console.warn('Profile fetch note:', error.message);
         // Create initial customer profile record if not found
+        const resolvedFallbackName = metaName || (fallbackEmail ? fallbackEmail.split('@')[0] : 'Customer');
         const newProfile: UserProfile = {
           id: userId,
-          name: fallbackEmail.split('@')[0],
+          name: resolvedFallbackName,
           email: fallbackEmail,
-          phone: '',
+          phone: metaPhone,
           role: 'customer',
           status: 'active',
           created_at: new Date().toISOString(),
@@ -100,11 +114,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       if (data) {
+        // If data.full_name is an email username/prefix while metaName has a real multi-word name, prefer real name
+        const isEmailUsername = Boolean(
+          data.full_name &&
+          fallbackEmail &&
+          data.full_name.toLowerCase().trim() === fallbackEmail.split('@')[0].toLowerCase().trim()
+        );
+        const resolvedName = (isEmailUsername && metaName) ? metaName : (data.full_name || metaName || fallbackEmail.split('@')[0]);
+
         setUser({
           id: data.id,
-          name: data.full_name,
-          email: data.email,
-          phone: data.phone || '',
+          name: resolvedName,
+          email: data.email || fallbackEmail,
+          phone: data.phone || metaPhone || '',
           role: data.role,
           status: data.status,
           created_at: data.created_at,
@@ -254,11 +276,73 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, error: error.message };
       }
 
+      // Keep Supabase Auth user_metadata synchronized
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            full_name: data.name || user.name,
+            phone: data.phone !== undefined ? data.phone : user.phone,
+          },
+        });
+      } catch {
+        // ignore metadata sync error
+      }
+
       setUser((prev) => (prev ? { ...prev, ...data } : null));
       success('Profile updated successfully.');
       return { success: true };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Update failed';
+      return { success: false, error: msg };
+    }
+  };
+
+  const updateEmail = async (newEmail: string): Promise<{ success: boolean; error?: string; message?: string }> => {
+    const cleanEmail = newEmail.trim().toLowerCase();
+    if (!cleanEmail) return { success: false, error: 'Please enter a valid email address.' };
+    if (!user) return { success: false, error: 'Not logged in.' };
+    if (cleanEmail === user.email.toLowerCase()) {
+      return { success: false, error: 'New email must be different from your current email.' };
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: cleanEmail,
+      });
+
+      if (error) {
+        toastError(error.message);
+        return { success: false, error: error.message };
+      }
+
+      const msg = 'Verification links have been sent to your email addresses. Please confirm the change to finalize your new email.';
+      info(msg);
+      return { success: true, message: msg };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update email.';
+      return { success: false, error: msg };
+    }
+  };
+
+  const changePassword = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters.' };
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toastError(error.message);
+        return { success: false, error: error.message };
+      }
+
+      success('Account password updated successfully.');
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to change password.';
       return { success: false, error: msg };
     }
   };
@@ -439,6 +523,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         updateProfile,
+        updateEmail,
+        changePassword,
         toggleUserRole,
         toggleUserStatus,
         deleteUser,
