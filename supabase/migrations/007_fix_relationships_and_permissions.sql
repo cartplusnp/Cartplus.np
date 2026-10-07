@@ -10,16 +10,16 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
 GRANT ALL ON ALL ROUTINES IN SCHEMA public TO service_role;
 
 -- 3. Anonymous visitor least-privilege permissions
-GRANT SELECT ON public.categories, public.products, public.product_images, public.product_variants, public.product_reviews, public.seller_profiles, public.marketplace_settings, public.orders, public.order_items, public.order_tracking_events TO anon;
+GRANT SELECT ON public.categories, public.products, public.product_images, public.product_reviews, public.seller_profiles, public.marketplace_settings, public.orders, public.order_items, public.order_tracking_events TO anon;
 GRANT INSERT ON public.orders, public.order_items, public.order_tracking_events, public.support_requests, public.support_messages TO anon;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
 GRANT EXECUTE ON ALL ROUTINES IN SCHEMA public TO anon;
 
 -- 4. Authenticated user permissions
-GRANT SELECT ON public.categories, public.products, public.product_images, public.product_variants, public.product_reviews, public.seller_profiles, public.marketplace_settings, public.profiles, public.addresses, public.cart_items, public.wishlists, public.orders, public.order_items, public.order_tracking_events, public.notifications, public.support_requests, public.support_messages, public.seller_payouts TO authenticated;
-GRANT INSERT ON public.profiles, public.addresses, public.cart_items, public.wishlists, public.orders, public.order_items, public.order_tracking_events, public.product_reviews, public.support_requests, public.support_messages, public.notifications, public.seller_profiles, public.products, public.product_images, public.product_variants, public.seller_payouts TO authenticated;
-GRANT UPDATE ON public.profiles, public.addresses, public.cart_items, public.wishlists, public.orders, public.order_tracking_events, public.product_reviews, public.notifications, public.seller_profiles, public.products, public.product_images, public.product_variants, public.support_requests, public.marketplace_settings, public.seller_payouts TO authenticated;
-GRANT DELETE ON public.addresses, public.cart_items, public.wishlists, public.product_images, public.product_variants, public.products, public.notifications, public.product_reviews TO authenticated;
+GRANT SELECT ON public.categories, public.products, public.product_images, public.product_reviews, public.seller_profiles, public.marketplace_settings, public.profiles, public.addresses, public.wishlists, public.orders, public.order_items, public.order_tracking_events, public.notifications, public.support_requests, public.support_messages, public.seller_payouts TO authenticated;
+GRANT INSERT ON public.profiles, public.addresses, public.wishlists, public.orders, public.order_items, public.order_tracking_events, public.product_reviews, public.support_requests, public.support_messages, public.notifications, public.seller_profiles, public.products, public.product_images, public.seller_payouts TO authenticated;
+GRANT UPDATE ON public.profiles, public.addresses, public.wishlists, public.orders, public.order_tracking_events, public.product_reviews, public.notifications, public.seller_profiles, public.products, public.product_images, public.support_requests, public.marketplace_settings, public.seller_payouts TO authenticated;
+GRANT DELETE ON public.addresses, public.wishlists, public.product_images, public.products, public.notifications, public.product_reviews TO authenticated;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT EXECUTE ON ALL ROUTINES IN SCHEMA public TO authenticated;
 
